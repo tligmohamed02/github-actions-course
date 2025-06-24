@@ -62,7 +62,7 @@ jobs:
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
           source: ./publish-output/**
-          target: /var/www/myapp
+          target: /var/www/Netapp
 
       - name: 🔁 Restart .NET service
         uses: appleboy/ssh-action@v1.0.0
