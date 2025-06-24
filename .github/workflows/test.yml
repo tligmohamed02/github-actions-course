@@ -9,38 +9,33 @@ on:
 env:
   DOTNET_VERSION: '6.0.x'
   PUBLISH_DIR: publish-output
-  
-defaults:
-  run:
-    working-directory: 03-app-dotnet
-    
+
 jobs:
   build:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: 03-app-dotnet
-    outputs:
-      artifact-name: .net-app
+        working-directory: 03-app-dotnet   # ⬅️ dossier contenant ton projet .csproj
+
     steps:
-      - name: Checkout code
+      - name: 🧾 Checkout code
         uses: actions/checkout@v3
 
-      - name: Setup .NET
+      - name: 🛠️ Setup .NET
         uses: actions/setup-dotnet@v4
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore dependencies
+      - name: 📦 Restore dependencies
         run: dotnet restore
 
-      - name: Build project
+      - name: 🧱 Build
         run: dotnet build --configuration Release
 
-      - name: Publish app
+      - name: 🚀 Publish
         run: dotnet publish -c Release -o ../${{ env.PUBLISH_DIR }}
 
-      - name: Upload artifact
+      - name: 📤 Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: .net-app
@@ -49,23 +44,27 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+
     steps:
-      - name: Download artifact from build job
+      - name: 📥 Download artifact
         uses: actions/download-artifact@v4
         with:
           name: .net-app
+          path: ./publish-output
 
-      - name: Deploy to VM
+      - name: 🔍 Show downloaded files
+        run: ls -la ./publish-output
+
+      - name: 📡 Deploy to Azure VM
         uses: appleboy/scp-action@v0.1.6
         with:
           host: ${{ secrets.VPS_HOST }}
           username: ${{ secrets.VPS_USER }}
           key: ${{ secrets.VPS_SSH_KEY }}
-          source: .net-app/
+          source: ./publish-output/**
           target: /var/www/myapp
 
-
-      - name: Restart app on remote server
+      - name: 🔁 Restart .NET service
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.VPS_HOST }}
